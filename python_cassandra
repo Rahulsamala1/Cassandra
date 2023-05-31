@@ -1,0 +1,45 @@
+def connect_to_cluster():
+#Connect to Cassandra cluster
+cluster = Cluster([&#39;&lt;cassandra_hostname&gt;&#39;])
+session = cluster.connect()
+return session
+def collect_metrics(session):
+# Retrieve performance-related metrics
+metrics = {}
+#Fetching Node CPU and memory usage
+cpu_usage_query = &quot;SELECT * FROM system.cpu&quot;
+memory_usage_query = &quot;SELECT * FROM system.memory&quot;
+# Read and write latencies
+latency_query = &quot;SELECT * FROM system.local WHERE key=&#39;local&#39;&quot;
+# Get Number of pending compactions
+compactions_query = &quot;SELECT * FROM system.compaction_history&quot;
+#Read Number of active connections
+connections_query = &quot;SELECT * FROM system.views_builds_in_progress&quot;
+#Get Storage space utilization
+space_query = &quot;SELECT * FROM system.size_estimates&quot;
+
+#Execute queries and collect metrics
+metrics[&#39;CPU Usage&#39;] = session.execute(cpu_usage_query)[0]
+metrics[&#39;Memory Usage&#39;] = session.execute(memory_usage_query)[0]
+metrics[&#39;Read Latency&#39;] = session.execute(latency_query)[0]
+metrics[&#39;Write Latency&#39;] = session.execute(latency_query)[0]
+metrics[&#39;Pending Compactions&#39;] = session.execute(compactions_query)[0]
+metrics[&#39;Active Connections&#39;] = session.execute(connections_query)[0]
+metrics[&#39;Storage Space Utilization&#39;] = session.execute(space_query)[0]
+return metrics
+def display_metrics(metrics):
+#To_Display metrics on command line in a key-value format
+for metric, value in metrics.items():
+print(f&quot;{metric}: {value}&quot;)
+def main():
+# Connect to Cassandra cluster
+session = connect_to_cluster()
+# Collect performance-related metrics
+metrics = collect_metrics(session)
+# Display metrics on the command-line
+display_metrics(metrics)
+# Close the session and cluster connection
+session.shutdown()
+cluster.shutdown()
+if __name__ == &quot;__main__&quot;:
+main()
